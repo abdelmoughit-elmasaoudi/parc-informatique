@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParcInfo — Gestion du Parc Informatique</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #181c24;
+    --border: #232733;
+    --accent: #3b82f6;
+    --accent2: #06b6d4;
+    --accent3: #8b5cf6;
+    --green: #10b981;
+    --orange: #f59e0b;
+    --red: #ef4444;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --sidebar-w: 240px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    position: fixed;
+    left: 0; top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .logo-mark {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent), var(--accent3));
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+  .logo-sub { font-size: 11px; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+  .nav { flex: 1; padding: 16px 0; overflow-y: auto; }
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 12px 20px 6px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-size: 14px;
+    color: var(--muted);
+    border-left: 2px solid transparent;
+    user-select: none;
+  }
+  .nav-item:hover { color: var(--text); background: var(--surface2); }
+  .nav-item.active {
+    color: var(--text);
+    border-left-color: var(--accent);
+    background: rgba(59,130,246,.08);
+  }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--accent);
+    color: #fff;
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif;
+  }
+  .user-info .name { font-size: 13px; font-weight: 500; }
+  .user-info .role { font-size: 11px; color: var(--accent); font-family: 'DM Mono', monospace; }
+
+  /* ── MAIN ── */
+  .main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .topbar {
+    height: 56px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+    gap: 16px;
+    background: var(--surface);
+    flex-shrink: 0;
+  }
+  .page-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .topbar-spacer { flex: 1; }
+  .search-box {
+    display: flex;
+    align-items: center;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    gap: 8px;
+    width: 220px;
+  }
+  .search-box input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-size: 13px; width: 100%;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .search-box input::placeholder { color: var(--muted); }
+
+  .btn {
+    padding: 7px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #2563eb; }
+  .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-success { background: var(--green); color: #fff; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; animation: fadein 0.2s ease; }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  /* ── DASHBOARD ── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .kpi-card.blue::before { background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.orange::before { background: var(--orange); }
+  .kpi-card.purple::before { background: var(--accent3); }
+
+  .kpi-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-family: 'DM Mono', monospace; }
+  .kpi-value {
+    font-family: 'Syne', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    margin: 4px 0;
+    line-height: 1;
+  }
+  .kpi-sub { font-size: 12px; color: var(--muted); }
+  .kpi-icon { position: absolute; right: 16px; top: 16px; font-size: 28px; opacity: 0.15; }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-title span { flex: 1; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+
+  /* ── TABLE ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; flex: 1; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  th {
+    text-align: left;
+    padding: 10px 16px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    background: var(--surface2);
+    font-family: 'DM Mono', monospace;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface2); }
+
+  /* ── BADGES ── */
+  .badge {
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: 'DM Mono', monospace;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .badge-available { background: rgba(16,185,129,.15); color: var(--green); }
+  .badge-assigned { background: rgba(59,130,246,.15); color: var(--accent); }
+  .badge-maintenance { background: rgba(245,158,11,.15); color: var(--orange); }
+  .badge-out { background: rgba(239,68,68,.15); color: var(--red); }
+  .badge-active { background: rgba(16,185,129,.15); color: var(--green); }
+  .badge-returned { background: rgba(107,114,128,.15); color: var(--muted); }
+  .badge-open { background: rgba(239,68,68,.15); color: var(--red); }
+  .badge-progress { background: rgba(245,158,11,.15); color: var(--orange); }
+  .badge-resolved { background: rgba(16,185,129,.15); color: var(--green); }
+  .badge-admin { background: rgba(139,92,246,.15); color: var(--accent3); }
+  .badge-gestionnaire { background: rgba(59,130,246,.15); color: var(--accent); }
+  .badge-technicien { background: rgba(6,182,212,.15); color: var(--accent2); }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; display: inline-block; }
+  .dot-green { background: var(--green); }
+  .dot-blue { background: var(--accent); }
+  .dot-orange { background: var(--orange); }
+  .dot-red { background: var(--red); }
+
+  /* ── BAR CHART ── */
+  .bar-chart { padding: 8px 0; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 12px; }
+  .bar-label { width: 110px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar-track { flex: 1; background: var(--surface2); border-radius: 4px; height: 8px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.8s ease; }
+  .bar-val { width: 30px; text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* ── DONUT ── */
+  .donut-wrap { display: flex; align-items: center; gap: 20px; padding: 8px 0; }
+  .donut-legend { flex: 1; }
+  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── FORMS ── */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-group { margin-bottom: 16px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-family: 'DM Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-control {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-control:focus { border-color: var(--accent); }
+  .form-control option { background: var(--surface2); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    width: 560px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: none; } }
+  .modal-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; flex: 1; }
+  .modal-body { padding: 24px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+  .close-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 18px; }
+  .close-btn:hover { color: var(--text); }
+
+  /* ── ACTIVITY ── */
+  .activity-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-icon {
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+  }
+  .activity-info { flex: 1; }
+  .activity-text { font-size: 13px; }
+  .activity-time { font-size: 11px; color: var(--muted); font-family: 'DM Mono', monospace; margin-top: 2px; }
+
+  /* ── ALERTS ── */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .alert-warning { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.25); color: var(--orange); }
+  .alert-danger { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25); color: var(--red); }
+
+  /* ── LOGIN ── */
+  .login-wrap {
+    position: fixed; inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    z-index: 9999;
+  }
+  .login-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 40px;
+    width: 400px;
+    max-width: 95vw;
+  }
+  .login-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .login-sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+  .login-error { color: var(--red); font-size: 13px; text-align: center; margin-bottom: 12px; display: none; }
+
+  /* ── TOAST ── */
+  .toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 260px;
+    animation: slideIn 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0,0,0,.4);
+  }
+  @keyframes slideIn { from { transform: translateX(80px); opacity: 0; } to { transform: none; opacity: 1; } }
+  .toast.success { border-left: 3px solid var(--green); }
+  .toast.error { border-left: 3px solid var(--red); }
+  .toast.info { border-left: 3px solid var(--accent); }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+  /* ── DETAIL PANEL ── */
+  .detail-row { display: flex; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { width: 160px; color: var(--muted); font-family: 'DM Mono', monospace; font-size: 12px; flex-shrink: 0; }
+  .detail-val { flex: 1; }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+  .tab {
+    padding: 10px 18px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── EMPTY STATE ── */
+  .empty-state { text-align: center; padding: 48px; color: var(--muted); }
+  .empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+  .empty-state p { font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">🖥️ ParcInfo</div>
+    <div class="login-sub">Gestion du Parc Informatique</div>
+    <div class="login-error" id="loginError">Email ou mot de passe incorrect.</div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input class="form-control" type="email" id="loginEmail" placeholder="admin@parcinfo.ma" value="admin@parcinfo.ma">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input class="form-control" type="password" id="loginPass" placeholder="••••••••" value="admin123">
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px" onclick="doLogin()">Se connecter →</button>
+    <div style="text-align:center;margin-top:14px;font-size:12px;color:var(--muted)">
+      Demo: admin@parcinfo.ma / admin123
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-mark"><div class="logo-icon">🖥️</div> ParcInfo</div>
+    <div class="logo-sub">v1.0 · Système d'information</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section-label">Principal</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)"><span class="icon">📊</span> Tableau de bord</div>
+    <div class="nav-item" onclick="showPage('equipments', this)"><span class="icon">💻</span> Équipements <span class="nav-badge" id="badgeEquip">24</span></div>
+    <div class="nav-item" onclick="showPage('assignments', this)"><span class="icon">🔗</span> Affectations <span class="nav-badge" id="badgeAssign">12</span></div>
+    <div class="nav-section-label">Opérations</div>
+    <div class="nav-item" onclick="showPage('maintenance', this)"><span class="icon">🔧</span> Maintenances <span class="nav-badge" id="badgeMaint">3</span></div>
+    <div class="nav-item" onclick="showPage('history', this)"><span class="icon">📋</span> Historique</div>
+    <div class="nav-section-label">Administration</div>
+    <div class="nav-item" onclick="showPage('users', this)"><span class="icon">👥</span> Utilisateurs</div>
+    <div class="nav-item" onclick="showPage('categories', this)"><span class="icon">🗂️</span> Catégories</div>
+    <div class="nav-item" onclick="showPage('stats', this)"><span class="icon">📈</span> Statistiques</div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar" id="sideAvatar">A</div>
+    <div class="user-info">
+      <div class="name" id="sideUser">Administrateur</div>
+      <div class="role" id="sideRole">ADMIN</div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Tableau de bord</div>
+    <div class="topbar-spacer"></div>
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Rechercher..." id="globalSearch" oninput="globalSearchFn(this.value)">
+    </div>
+    <button class="btn btn-primary" id="topAddBtn" onclick="handleTopAdd()">+ Ajouter</button>
+    <button class="btn btn-ghost" onclick="doLogout()">↩ Déconnexion</button>
+  </div>
+
+  <div class="content">
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="kpi-grid">
+        <div class="kpi-card blue">
+          <div class="kpi-icon">💻</div>
+          <div class="kpi-label">Total équipements</div>
+          <div class="kpi-value">24</div>
+          <div class="kpi-sub">↑ +2 ce mois</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-label">Disponibles</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-sub">33% du parc</div>
+        </div>
+        <div class="kpi-card orange">
+          <div class="kpi-icon">🔗</div>
+          <div class="kpi-label">Affectés</div>
+          <div class="kpi-value">12</div>
+          <div class="kpi-sub">50% du parc</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-icon">🔧</div>
+          <div class="kpi-label">Maintenance</div>
+          <div class="kpi-value">4</div>
+          <div class="kpi-sub">17% du parc</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Répartition par catégorie</div></div>
+          <div style="padding:16px">
+            <div class="bar-chart">
+              <div class="bar-row"><div class="bar-label">Ordinateurs</div><div class="bar-track"><div class="bar-fill" style="width:58%"></div></div><div class="bar-val">14</div></div>
+              <div class="bar-row"><div class="bar-label">Écrans</div><div class="bar-track"><div class="bar-fill" style="width:25%;background:linear-gradient(90deg,var(--accent3),var(--accent))"></div></div><div class="bar-val">6</div></div>
+              <div class="bar-row"><div class="bar-label">Imprimantes</div><div class="bar-track"><div class="bar-fill" style="width:12%;background:var(--green)"></div></div><div class="bar-val">2</div></div>
+              <div class="bar-row"><div class="bar-label">Réseau</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:var(--orange)"></div></div><div class="bar-val">2</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Statut du parc</div></div>
+          <div style="padding:16px">
+            <div class="donut-wrap">
+              <svg width="90" height="90" viewBox="0 0 90 90">
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#232733" stroke-width="12"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#3b82f6" stroke-width="12" stroke-dasharray="110 110" stroke-dashoffset="0" transform="rotate(-90 45 45)"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#10b981" stroke-width="12" stroke-dasharray="50 170" stroke-dashoffset="-110" transform="rotate(-90 45 45)"/>
+                <circle cx="45" cy="45" r="35" fill="none" stroke="#f59e0b" stroke-width="12" stroke-dasharray="37 183" stroke-dashoffset="-160" transform="rotate(-90 45 45)"/>
+              </svg>
+              <div class="donut-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div> Affecté (50%)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Disponible (33%)</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Maintenance (17%)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Activité récente</div></div>
+          <div style="padding:16px">
+            <div class="activity-item">
+              <div class="activity-icon" style="background:rgba(59,130,246,.15)">🔗</div>
+              <div class="activity-info">
+                <div class="activity-text"><strong>PC-INV-0021</strong> affecté à Ahmed Benali</div>
+                <div class="activity-time">Il y a 10 min · Gestionnaire Karimi</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background:rgba(245,158,11,.15)">🔧</div>
+              <div class="activity-info">
+                <div class="activity-text">Panne déclarée sur <strong>IMP-INV-0003</strong></div>
+                <div class="activity-time">Il y a 1h · Technicien Mansouri</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background:rgba(16,185,129,.15)">✅</div>
+              <div class="activity-info">
+                <div class="activity-text"><strong>PC-INV-0018</strong> retourné au stock</div>
+                <div class="activity-time">Il y a 3h · Gestionnaire Karimi</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background:rgba(139,92,246,.15)">➕</div>
+              <div class="activity-info">
+                <div class="activity-text">Nouvel équipement: <strong>ECR-INV-0024</strong></div>
+                <div class="activity-time">Hier · Admin</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-icon" style="background:rgba(16,185,129,.15)">🔧</div>
+              <div class="activity-info">
+                <div class="activity-text">Maintenance clôturée <strong>PC-INV-0012</strong></div>
+                <div class="activity-time">Hier · Technicien Mansouri</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-header"><div class="card-title">⚠️ Alertes</div></div>
+            <div style="padding:16px">
+              <div class="alert alert-warning">🕐 3 garanties expirent ce mois</div>
+              <div class="alert alert-danger">🔴 2 maintenances sans technicien</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">📍 Par localisation</div></div>
+            <div style="padding:16px">
+              <div class="bar-row"><div class="bar-label">Salle 101</div><div class="bar-track"><div class="bar-fill" style="width:62%"></div></div><div class="bar-val">8</div></div>
+              <div class="bar-row"><div class="bar-label">Bureau Dir.</div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div><div class="bar-val">5</div></div>
+              <div class="bar-row"><div class="bar-label">Labo Info</div><div class="bar-track"><div class="bar-fill" style="width:46%"></div></div><div class="bar-val">6</div></div>
+              <div class="bar-row"><div class="bar-label">Stock</div><div class="bar-track"><div class="bar-fill" style="width:38%"></div></div><div class="bar-val">5</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EQUIPMENTS -->
+    <div class="page" id="page-equipments">
+      <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+        <select class="form-control" style="width:auto" onchange="filterEquip(this.value,'status')">
+          <option value="">Tous statuts</option>
+          <option>AVAILABLE</option><option>ASSIGNED</option><option>MAINTENANCE</option><option>OUT_OF_SERVICE</option>
+        </select>
+        <select class="form-control" style="width:auto" onchange="filterEquip(this.value,'cat')">
+          <option value="">Toutes catégories</option>
+          <option>Ordinateur</option><option>Écran</option><option>Imprimante</option><option>Réseau</option>
+        </select>
+      </div>
+      <div class="card">
+        <table id="equipTable">
+          <thead><tr>
+            <th>Code Inventaire</th><th>Catégorie</th><th>Marque / Modèle</th><th>N° Série</th><th>Statut</th><th>État</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="equipTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ASSIGNMENTS -->
+    <div class="page" id="page-assignments">
+      <div class="card">
+        <table id="assignTable">
+          <thead><tr>
+            <th>Équipement</th><th>Bénéficiaire</th><th>Service/Salle</th><th>Date affectation</th><th>Retour prévu</th><th>Statut</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="assignTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MAINTENANCE -->
+    <div class="page" id="page-maintenance">
+      <div class="card">
+        <table id="maintTable">
+          <thead><tr>
+            <th>Équipement</th><th>Problème</th><th>Technicien</th><th>Début</th><th>Fin</th><th>Statut</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="maintTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- HISTORY -->
+    <div class="page" id="page-history">
+      <div class="card">
+        <table id="histTable">
+          <thead><tr>
+            <th>Date</th><th>Action</th><th>Équipement</th><th>Effectué par</th><th>Détails</th>
+          </tr></thead>
+          <tbody id="histTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="page" id="page-users">
+      <div class="card">
+        <table id="userTable">
+          <thead><tr>
+            <th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="userTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CATEGORIES -->
+    <div class="page" id="page-categories">
+      <div class="card">
+        <table>
+          <thead><tr><th>Nom</th><th>Description</th><th>Nb équipements</th><th>Actions</th></tr></thead>
+          <tbody id="catTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STATS -->
+    <div class="page" id="page-stats">
+      <div class="kpi-grid">
+        <div class="kpi-card blue"><div class="kpi-icon">📦</div><div class="kpi-label">Total opérations</div><div class="kpi-value">87</div><div class="kpi-sub">Cette année</div></div>
+        <div class="kpi-card green"><div class="kpi-icon">🔗</div><div class="kpi-label">Affectations</div><div class="kpi-value">54</div><div class="kpi-sub">Depuis janvier</div></div>
+        <div class="kpi-card orange"><div class="kpi-icon">🔧</div><div class="kpi-label">Maintenances</div><div class="kpi-value">21</div><div class="kpi-sub">Dont 3 en cours</div></div>
+        <div class="kpi-card purple"><div class="kpi-icon">🔁</div><div class="kpi-label">Restitutions</div><div class="kpi-value">12</div><div class="kpi-sub">Retours validés</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Maintenances par mois</div></div>
+          <div style="padding:20px">
+            <div class="bar-row"><div class="bar-label">Janvier</div><div class="bar-track"><div class="bar-fill" style="width:30%"></div></div><div class="bar-val">3</div></div>
+            <div class="bar-row"><div class="bar-label">Février</div><div class="bar-track"><div class="bar-fill" style="width:20%"></div></div><div class="bar-val">2</div></div>
+            <div class="bar-row"><div class="bar-label">Mars</div><div class="bar-track"><div class="bar-fill" style="width:50%"></div></div><div class="bar-val">5</div></div>
+            <div class="bar-row"><div class="bar-label">Avril</div><div class="bar-track"><div class="bar-fill" style="width:40%"></div></div><div class="bar-val">4</div></div>
+            <div class="bar-row"><div class="bar-label">Mai</div><div class="bar-track"><div class="bar-fill" style="width:70%"></div></div><div class="bar-val">7</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Top équipements défaillants</div></div>
+          <div style="padding:20px">
+            <div class="bar-row"><div class="bar-label">IMP-INV-0003</div><div class="bar-track"><div class="bar-fill" style="width:60%;background:var(--red)"></div></div><div class="bar-val">3</div></div>
+            <div class="bar-row"><div class="bar-label">PC-INV-0012</div><div class="bar-track"><div class="bar-fill" style="width:40%;background:var(--orange)"></div></div><div class="bar-val">2</div></div>
+            <div class="bar-row"><div class="bar-label">RES-INV-0001</div><div class="bar-track"><div class="bar-fill" style="width:20%;background:var(--orange)"></div></div><div class="bar-val">1</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="modalEquip">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="equipModalTitle">Ajouter un équipement</div>
+      <button class="close-btn" onclick="closeModal('modalEquip')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Code inventaire *</label><input class="form-control" id="eCode" placeholder="PC-INV-0025"></div>
+        <div class="form-group"><label class="form-label">N° de série</label><input class="form-control" id="eSerial" placeholder="SN123456"></div>
+        <div class="form-group"><label class="form-label">Catégorie *</label>
+          <select class="form-control" id="eCat">
+            <option value="">— Choisir —</option>
+            <option>Ordinateur</option><option>Écran</option><option>Imprimante</option><option>Réseau</option><option>Périphérique</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Marque</label><input class="form-control" id="eBrand" placeholder="Dell, HP, Lenovo…"></div>
+        <div class="form-group"><label class="form-label">Modèle</label><input class="form-control" id="eModel" placeholder="OptiPlex 7090"></div>
+        <div class="form-group"><label class="form-label">Fournisseur</label><input class="form-control" id="eSupplier" placeholder="Fournisseur"></div>
+        <div class="form-group"><label class="form-label">Date d'achat</label><input class="form-control" type="date" id="ePurchase"></div>
+        <div class="form-group"><label class="form-label">Fin de garantie</label><input class="form-control" type="date" id="eWarranty"></div>
+        <div class="form-group"><label class="form-label">État</label>
+          <select class="form-control" id="eCondition">
+            <option>Bon</option><option>Usagé</option><option>Défaillant</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Statut</label>
+          <select class="form-control" id="eStatus">
+            <option value="AVAILABLE">AVAILABLE</option><option value="ASSIGNED">ASSIGNED</option><option value="MAINTENANCE">MAINTENANCE</option><option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+          </select>
+        </div>
+        <div class="form-group full"><label class="form-label">Commentaire</label><input class="form-control" id="eComment" placeholder="Notes optionnelles…"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalEquip')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveEquip()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAssign">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nouvelle affectation</div>
+      <button class="close-btn" onclick="closeModal('modalAssign')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Équipement *</label>
+          <select class="form-control" id="aEquip"></select>
+        </div>
+        <div class="form-group"><label class="form-label">Bénéficiaire *</label>
+          <select class="form-control" id="aUser"></select>
+        </div>
+        <div class="form-group"><label class="form-label">Service</label><input class="form-control" id="aService" placeholder="Informatique, RH…"></div>
+        <div class="form-group"><label class="form-label">Salle</label><input class="form-control" id="aRoom" placeholder="Salle 101"></div>
+        <div class="form-group"><label class="form-label">Date affectation *</label><input class="form-control" type="date" id="aDate"></div>
+        <div class="form-group"><label class="form-label">Retour prévu</label><input class="form-control" type="date" id="aReturn"></div>
+        <div class="form-group full"><label class="form-label">Observations</label><input class="form-control" id="aObs" placeholder="Observations…"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalAssign')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveAssign()">💾 Affecter</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalMaint">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Déclarer une maintenance</div>
+      <button class="close-btn" onclick="closeModal('modalMaint')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Équipement *</label>
+          <select class="form-control" id="mEquip"></select>
+        </div>
+        <div class="form-group"><label class="form-label">Technicien</label>
+          <select class="form-control" id="mTech"></select>
+        </div>
+        <div class="form-group full"><label class="form-label">Problème *</label><input class="form-control" id="mProblem" placeholder="Description du problème…"></div>
+        <div class="form-group"><label class="form-label">Date début *</label><input class="form-control" type="date" id="mStart"></div>
+        <div class="form-group"><label class="form-label">Date fin estimée</label><input class="form-control" type="date" id="mEnd"></div>
+        <div class="form-group"><label class="form-label">Statut</label>
+          <select class="form-control" id="mStatus">
+            <option value="OPEN">OPEN</option><option value="IN_PROGRESS">IN_PROGRESS</option><option value="RESOLVED">RESOLVED</option>
+          </select>
+        </div>
+        <div class="form-group full"><label class="form-label">Solution appliquée</label><input class="form-control" id="mSolution" placeholder="Solution…"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalMaint')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveMaint()">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalUser">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Ajouter un utilisateur</div>
+      <button class="close-btn" onclick="closeModal('modalUser')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label class="form-label">Nom complet *</label><input class="form-control" id="uName" placeholder="Prénom Nom"></div>
+        <div class="form-group"><label class="form-label">Email *</label><input class="form-control" id="uEmail" type="email" placeholder="email@example.com"></div>
+        <div class="form-group"><label class="form-label">Rôle *</label>
+          <select class="form-control" id="uRole">
+            <option value="ADMIN">ADMIN</option>
+            <option value="GESTIONNAIRE">GESTIONNAIRE</option>
+            <option value="TECHNICIEN">TECHNICIEN</option>
+            <option value="BENEFICIAIRE">BENEFICIAIRE</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Mot de passe *</label><input class="form-control" type="password" id="uPass" placeholder="••••••••"></div>
+        <div class="form-group"><label class="form-label">Statut</label>
+          <select class="form-control" id="uStatus"><option value="1">Actif</option><option value="0">Inactif</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalUser')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveUser()">💾 Créer</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle">Détail équipement</div>
+      <button class="close-btn" onclick="closeModal('modalDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="detailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modalDetail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════════
+let currentPage = 'dashboard';
+let editingId = null;
+
+const users = [
+  { id:1, full_name:'Admin Système', email:'admin@parcinfo.ma', password:'admin123', role:'ADMIN', status:1 },
+  { id:2, full_name:'Karimi Youssef', email:'karimi@parcinfo.ma', password:'pass123', role:'GESTIONNAIRE', status:1 },
+  { id:3, full_name:'Mansouri Said', email:'mansouri@parcinfo.ma', password:'pass123', role:'TECHNICIEN', status:1 },
+  { id:4, full_name:'Benali Ahmed', email:'benali@parcinfo.ma', password:'pass123', role:'BENEFICIAIRE', status:1 },
+  { id:5, full_name:'Cherkaoui Fatima', email:'cherkaoui@parcinfo.ma', password:'pass123', role:'BENEFICIAIRE', status:1 },
+];
+
+const categories = [
+  { id:1, name:'Ordinateur', description:'PC de bureau et portables', count:14 },
+  { id:2, name:'Écran', description:'Moniteurs et affichages', count:6 },
+  { id:3, name:'Imprimante', description:'Imprimantes et MFP', count:2 },
+  { id:4, name:'Réseau', description:'Switch, routeurs, AP Wi-Fi', count:2 },
+];
+
+let equipments = [
+  { id:1, code:'PC-INV-0001', serial:'SN001122', brand:'Dell', model:'OptiPlex 7090', category:'Ordinateur', supplier:'Sodetel', purchase:'2023-01-15', warranty:'2026-01-15', status:'ASSIGNED', condition:'Bon', comment:'' },
+  { id:2, code:'PC-INV-0002', serial:'SN001123', brand:'HP', model:'EliteDesk 800', category:'Ordinateur', supplier:'HP Maroc', purchase:'2022-09-01', warranty:'2025-09-01', status:'AVAILABLE', condition:'Bon', comment:'' },
+  { id:3, code:'PC-INV-0003', serial:'SN001124', brand:'Lenovo', model:'ThinkCentre M90', category:'Ordinateur', supplier:'Sodetel', purchase:'2021-06-10', warranty:'2024-06-10', status:'MAINTENANCE', condition:'Défaillant', comment:'Problème alimentation' },
+  { id:4, code:'ECR-INV-0001', serial:'SN002001', brand:'Samsung', model:'S24R350', category:'Écran', supplier:'Electro+', purchase:'2023-03-20', warranty:'2026-03-20', status:'ASSIGNED', condition:'Bon', comment:'' },
+  { id:5, code:'ECR-INV-0002', serial:'SN002002', brand:'LG', model:'24MK430H', category:'Écran', supplier:'Electro+', purchase:'2022-07-05', warranty:'2025-07-05', status:'AVAILABLE', condition:'Usagé', comment:'Légère rayure' },
+  { id:6, code:'IMP-INV-0001', serial:'SN003001', brand:'HP', model:'LaserJet Pro M404', category:'Imprimante', supplier:'HP Maroc', purchase:'2023-05-12', warranty:'2026-05-12', status:'AVAILABLE', condition:'Bon', comment:'' },
+  { id:7, code:'IMP-INV-0002', serial:'SN003002', brand:'Canon', model:'MF445dw', category:'Imprimante', supplier:'Sodetel', purchase:'2021-11-30', warranty:'2024-11-30', status:'MAINTENANCE', condition:'Défaillant', comment:'Bourrage papier récurrent' },
+  { id:8, code:'RES-INV-0001', serial:'SN004001', brand:'Cisco', model:'SG350-28', category:'Réseau', supplier:'DataNet', purchase:'2022-04-18', warranty:'2027-04-18', status:'ASSIGNED', condition:'Bon', comment:'Switch salle serveur' },
+];
+
+let assignments = [
+  { id:1, equipment_id:1, user_id:4, service:'Direction Informatique', room:'Bureau 201', assigned_date:'2024-02-10', return_date:'2024-12-31', status:'ACTIVE', observation:'' },
+  { id:2, equipment_id:4, user_id:5, service:'Ressources Humaines', room:'Salle 101', assigned_date:'2024-01-05', return_date:'', status:'ACTIVE', observation:'Double écran' },
+  { id:3, equipment_id:8, user_id:2, service:'Réseau', room:'Salle serveur', assigned_date:'2023-06-01', return_date:'', status:'ACTIVE', observation:'Administration réseau' },
+  { id:4, equipment_id:2, user_id:4, service:'Informatique', room:'Salle 103', assigned_date:'2023-09-01', return_date:'2024-01-15', status:'RETURNED', observation:'Restitué OK' },
+];
+
+let maintenances = [
+  { id:1, equipment_id:3, technician_id:3, problem:'Bloc alimentation défaillant, PC ne démarre plus', solution:'', start_date:'2024-05-02', end_date:'', status:'IN_PROGRESS' },
+  { id:2, equipment_id:7, technician_id:3, problem:'Bourrage papier récurrent, bruit anormal', solution:'', start_date:'2024-04-28', end_date:'', status:'OPEN' },
+  { id:3, equipment_id:1, technician_id:3, problem:'Ventilateur bruyant', solution:'Remplacement ventilateur CPU', start_date:'2024-03-10', end_date:'2024-03-15', status:'RESOLVED' },
+];
+
+let history = [
+  { id:1, action:'AFFECTATION', date:'2024-05-10', equipment_id:1, user_id:2, details:'Affecté à Ahmed Benali, Bureau 201' },
+  { id:2, action:'MAINTENANCE_OUVERTE', date:'2024-05-02', equipment_id:3, user_id:3, details:'Panne alimentation déclarée' },
+  { id:3, action:'RESTITUTION', date:'2024-01-15', equipment_id:2, user_id:2, details:'Retour au stock - état: Bon' },
+  { id:4, action:'CREATION', date:'2023-06-01', equipment_id:8, user_id:1, details:'Nouveau matériel enregistré' },
+  { id:5, action:'MAINTENANCE_CLOTUREE', date:'2024-03-15', equipment_id:1, user_id:3, details:'Ventilateur remplacé' },
+];
+
+let nextId = { equip:9, assign:5, maint:4, hist:6, user:6 };
+
+// ══════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════
+let currentUser = null;
+
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const u = users.find(x => x.email === email && x.password === pass && x.status === 1);
+  if (!u) {
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
+  currentUser = u;
+  document.getElementById('loginWrap').style.display = 'none';
+  document.getElementById('sideUser').textContent = u.full_name;
+  document.getElementById('sideRole').textContent = u.role;
+  document.getElementById('sideAvatar').textContent = u.full_name[0].toUpperCase();
+  renderAll();
+  toast('Bienvenue, ' + u.full_name + ' 👋', 'success');
+}
+
+function doLogout() {
+  currentUser = null;
+  document.getElementById('loginWrap').style.display = 'flex';
+  document.getElementById('loginError').style.display = 'none';
+}
+
+// ══════════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════════
+const pageTitles = {
+  dashboard:'Tableau de bord', equipments:'Équipements', assignments:'Affectations',
+  maintenance:'Maintenances', history:'Historique', users:'Utilisateurs',
+  categories:'Catégories', stats:'Statistiques'
+};
+
+function showPage(page, el) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = pageTitles[page] || page;
+  renderPage(page);
+}
+
+function renderPage(page) {
+  if (page === 'equipments') renderEquipments();
+  if (page === 'assignments') renderAssignments();
+  if (page === 'maintenance') renderMaintenance();
+  if (page === 'history') renderHistory();
+  if (page === 'users') renderUsers();
+  if (page === 'categories') renderCategories();
+}
+
+function renderAll() {
+  renderEquipments(); renderAssignments(); renderMaintenance();
+  renderHistory(); renderUsers(); renderCategories();
+}
+
+// ══════════════════════════════════════════════
+// EQUIPMENT
+// ══════════════════════════════════════════════
+function statusBadge(s) {
+  const map = { AVAILABLE:'available', ASSIGNED:'assigned', MAINTENANCE:'maintenance', OUT_OF_SERVICE:'out' };
+  const lbl = { AVAILABLE:'✅ Disponible', ASSIGNED:'🔗 Affecté', MAINTENANCE:'🔧 Maintenance', OUT_OF_SERVICE:'❌ Hors service' };
+  return `<span class="badge badge-${map[s]||'available'}">${lbl[s]||s}</span>`;
+}
+function condBadge(c) {
+  if (c==='Bon') return `<span class="badge badge-available">Bon</span>`;
+  if (c==='Usagé') return `<span class="badge badge-maintenance">Usagé</span>`;
+  return `<span class="badge badge-out">Défaillant</span>`;
+}
+
+let equipFilter = { status:'', cat:'' };
+function filterEquip(val, key) { equipFilter[key] = val; renderEquipments(); }
+
+function renderEquipments(list) {
+  let data = list || equipments;
+  if (equipFilter.status) data = data.filter(e => e.status === equipFilter.status);
+  if (equipFilter.cat) data = data.filter(e => e.category === equipFilter.cat);
+  const tbody = document.getElementById('equipTbody');
+  tbody.innerHTML = data.map(e => `
+    <tr>
+      <td><strong style="font-family:'DM Mono',monospace;font-size:12px">${e.code}</strong></td>
+      <td>${e.category}</td>
+      <td>${e.brand} ${e.model}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted)">${e.serial||'—'}</td>
+      <td>${statusBadge(e.status)}</td>
+      <td>${condBadge(e.condition)}</td>
+      <td>
+        <button class="btn btn-ghost btn-sm" onclick="viewEquip(${e.id})">👁</button>
+        <button class="btn btn-ghost btn-sm" onclick="editEquip(${e.id})">✏️</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteEquip(${e.id})" style="color:var(--red)">🗑</button>
+      </td>
+    </tr>`).join('');
+  document.getElementById('badgeEquip').textContent = equipments.length;
+}
+
+function viewEquip(id) {
+  const e = equipments.find(x => x.id===id);
+  if (!e) return;
+  document.getElementById('detailTitle').textContent = 'Équipement · ' + e.code;
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-row"><div class="detail-key">Code inventaire</div><div class="detail-val"><strong style="font-family:'DM Mono',monospace">${e.code}</strong></div></div>
+    <div class="detail-row"><div class="detail-key">N° de série</div><div class="detail-val" style="font-family:'DM Mono',monospace">${e.serial||'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Catégorie</div><div class="detail-val">${e.category}</div></div>
+    <div class="detail-row"><div class="detail-key">Marque / Modèle</div><div class="detail-val">${e.brand} ${e.model}</div></div>
+    <div class="detail-row"><div class="detail-key">Fournisseur</div><div class="detail-val">${e.supplier||'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Date d'achat</div><div class="detail-val">${e.purchase||'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Fin de garantie</div><div class="detail-val">${e.warranty||'—'}</div></div>
+    <div class="detail-row"><div class="detail-key">Statut</div><div class="detail-val">${statusBadge(e.status)}</div></div>
+    <div class="detail-row"><div class="detail-key">État</div><div class="detail-val">${condBadge(e.condition)}</div></div>
+    <div class="detail-row"><div class="detail-key">Commentaire</div><div class="detail-val">${e.comment||'—'}</div></div>
+  `;
+  openModal('modalDetail');
+}
+
+function editEquip(id) {
+  const e = equipments.find(x => x.id===id);
+  if (!e) return;
+  editingId = id;
+  document.getElementById('equipModalTitle').textContent = 'Modifier équipement';
+  document.getElementById('eCode').value = e.code;
+  document.getElementById('eSerial').value = e.serial;
+  document.getElementById('eCat').value = e.category;
+  document.getElementById('eBrand').value = e.brand;
+  document.getElementById('eModel').value = e.model;
+  document.getElementById('eSupplier').value = e.supplier;
+  document.getElementById('ePurchase').value = e.purchase;
+  document.getElementById('eWarranty').value = e.warranty;
+  document.getElementById('eCondition').value = e.condition;
+  document.getElementById('eStatus').value = e.status;
+  document.getElementById('eComment').value = e.comment;
+  openModal('modalEquip');
+}
+
+function deleteEquip(id) {
+  if (!confirm('Supprimer cet équipement ?')) return;
+  const idx = equipments.findIndex(x => x.id===id);
+  if (idx > -1) { equipments.splice(idx,1); renderEquipments(); toast('Équipement supprimé','info'); }
+}
+
+function saveEquip() {
+  const code = document.getElementById('eCode').value.trim();
+  const cat = document.getElementById('eCat').value;
+  if (!code || !cat) { toast('Code et catégorie obligatoires','error'); return; }
+  const data = {
+    code, serial:document.getElementById('eSerial').value,
+    category:cat, brand:document.getElementById('eBrand').value,
+    model:document.getElementById('eModel').value, supplier:document.getElementById('eSupplier').value,
+    purchase:document.getElementById('ePurchase').value, warranty:document.getElementById('eWarranty').value,
+    condition:document.getElementById('eCondition').value, status:document.getElementById('eStatus').value,
+    comment:document.getElementById('eComment').value
+  };
+  if (editingId) {
+    Object.assign(equipments.find(x=>x.id===editingId), data);
+    toast('Équipement mis à jour ✅','success');
+  } else {
+    equipments.push({ id:nextId.equip++, ...data });
+    addHistory('CREATION', equipments[equipments.length-1].id, currentUser?.id||1, `Création: ${data.code}`);
+    toast('Équipement créé ✅','success');
+  }
+  closeModal('modalEquip'); editingId=null; renderEquipments();
+}
+
+// ══════════════════════════════════════════════
+// ASSIGNMENTS
+// ══════════════════════════════════════════════
+function renderAssignments() {
+  const tbody = document.getElementById('assignTbody');
+  tbody.innerHTML = assignments.map(a => {
+    const eq = equipments.find(e=>e.id===a.equipment_id);
+    const usr = users.find(u=>u.id===a.user_id);
+    const sBadge = a.status==='ACTIVE' ? '<span class="badge badge-active">🟢 Active</span>' : '<span class="badge badge-returned">⬛ Retournée</span>';
+    return `<tr>
+      <td><strong style="font-family:'DM Mono',monospace;font-size:12px">${eq?.code||'—'}</strong></td>
+      <td>${usr?.full_name||'—'}</td>
+      <td>${a.service||'—'} / ${a.room||'—'}</td>
+      <td>${a.assigned_date}</td>
+      <td>${a.return_date||'—'}</td>
+      <td>${sBadge}</td>
+      <td>
+        ${a.status==='ACTIVE'?`<button class="btn btn-ghost btn-sm" onclick="returnAssign(${a.id})">↩ Restituer</button>`:''}
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteAssign(${a.id})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('badgeAssign').textContent = assignments.filter(a=>a.status==='ACTIVE').length;
+}
+
+function returnAssign(id) {
+  const a = assignments.find(x=>x.id===id);
+  if (!a || !confirm('Confirmer la restitution ?')) return;
+  a.status='RETURNED'; a.return_date=new Date().toISOString().split('T')[0];
+  const eq = equipments.find(e=>e.id===a.equipment_id);
+  if (eq) eq.status='AVAILABLE';
+  addHistory('RESTITUTION', a.equipment_id, currentUser?.id||1, 'Retour au stock');
+  renderAssignments(); renderEquipments();
+  toast('Restitution enregistrée ✅','success');
+}
+
+function deleteAssign(id) {
+  if (!confirm('Supprimer cette affectation ?')) return;
+  assignments = assignments.filter(x=>x.id!==id);
+  renderAssignments(); toast('Affectation supprimée','info');
+}
+
+function saveAssign() {
+  const eId = parseInt(document.getElementById('aEquip').value);
+  const uId = parseInt(document.getElementById('aUser').value);
+  const date = document.getElementById('aDate').value;
+  if (!eId || !uId || !date) { toast('Champs obligatoires manquants','error'); return; }
+  const eq = equipments.find(e=>e.id===eId);
+  if (eq && eq.status!=='AVAILABLE') { toast('Équipement non disponible !','error'); return; }
+  assignments.push({
+    id:nextId.assign++, equipment_id:eId, user_id:uId,
+    service:document.getElementById('aService').value,
+    room:document.getElementById('aRoom').value,
+    assigned_date:date, return_date:document.getElementById('aReturn').value,
+    status:'ACTIVE', observation:document.getElementById('aObs').value
+  });
+  if (eq) eq.status='ASSIGNED';
+  addHistory('AFFECTATION', eId, currentUser?.id||1, `Affecté à ${users.find(u=>u.id===uId)?.full_name}`);
+  closeModal('modalAssign'); renderAssignments(); renderEquipments();
+  toast('Affectation créée ✅','success');
+}
+
+// ══════════════════════════════════════════════
+// MAINTENANCE
+// ══════════════════════════════════════════════
+function maintBadge(s) {
+  const map = { OPEN:'open', IN_PROGRESS:'progress', RESOLVED:'resolved', OUT_OF_SERVICE:'out' };
+  const lbl = { OPEN:'🔴 Ouvert', IN_PROGRESS:'🟡 En cours', RESOLVED:'🟢 Résolu', OUT_OF_SERVICE:'⚫ Hors service' };
+  return `<span class="badge badge-${map[s]||'open'}">${lbl[s]||s}</span>`;
+}
+
+function renderMaintenance() {
+  const tbody = document.getElementById('maintTbody');
+  tbody.innerHTML = maintenances.map(m => {
+    const eq = equipments.find(e=>e.id===m.equipment_id);
+    const tech = users.find(u=>u.id===m.technician_id);
+    return `<tr>
+      <td><strong style="font-family:'DM Mono',monospace;font-size:12px">${eq?.code||'—'}</strong></td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.problem}</td>
+      <td>${tech?.full_name||'Non assigné'}</td>
+      <td>${m.start_date}</td>
+      <td>${m.end_date||'—'}</td>
+      <td>${maintBadge(m.status)}</td>
+      <td>
+        ${m.status!=='RESOLVED'?`<button class="btn btn-success btn-sm" onclick="closeMaint(${m.id})">✓ Clôturer</button>`:''}
+        <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteMaint(${m.id})">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+  document.getElementById('badgeMaint').textContent = maintenances.filter(m=>m.status!=='RESOLVED').length;
+}
+
+function closeMaint(id) {
+  const m = maintenances.find(x=>x.id===id);
+  if (!m) return;
+  const sol = prompt('Solution appliquée :');
+  if (sol === null) return;
+  m.status='RESOLVED'; m.end_date=new Date().toISOString().split('T')[0]; m.solution=sol;
+  const eq = equipments.find(e=>e.id===m.equipment_id);
+  if (eq) eq.status='AVAILABLE';
+  addHistory('MAINTENANCE_CLOTUREE', m.equipment_id, currentUser?.id||1, sol||'Clôturée');
+  renderMaintenance(); renderEquipments();
+  toast('Maintenance clôturée ✅','success');
+}
+
+function deleteMaint(id) {
+  if (!confirm('Supprimer ?')) return;
+  maintenances = maintenances.filter(x=>x.id!==id);
+  renderMaintenance(); toast('Supprimé','info');
+}
+
+function saveMaint() {
+  const eId = parseInt(document.getElementById('mEquip').value);
+  const problem = document.getElementById('mProblem').value.trim();
+  const start = document.getElementById('mStart').value;
+  if (!eId || !problem || !start) { toast('Champs obligatoires manquants','error'); return; }
+  maintenances.push({
+    id:nextId.maint++, equipment_id:eId,
+    technician_id:parseInt(document.getElementById('mTech').value)||null,
+    problem, solution:document.getElementById('mSolution').value,
+    start_date:start, end_date:document.getElementById('mEnd').value,
+    status:document.getElementById('mStatus').value
+  });
+  const eq = equipments.find(e=>e.id===eId);
+  if (eq) eq.status='MAINTENANCE';
+  addHistory('MAINTENANCE_OUVERTE', eId, currentUser?.id||1, `Panne: ${problem}`);
+  closeModal('modalMaint'); renderMaintenance(); renderEquipments();
+  toast('Maintenance créée ✅','success');
+}
+
+// ══════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════
+function addHistory(action, equipId, userId, details) {
+  history.push({ id:nextId.hist++, action, date:new Date().toISOString().split('T')[0], equipment_id:equipId, user_id:userId, details });
+  renderHistory();
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('histTbody');
+  const sorted = [...history].sort((a,b) => b.id-a.id);
+  const icons = { AFFECTATION:'🔗', RESTITUTION:'✅', MAINTENANCE_OUVERTE:'🔧', MAINTENANCE_CLOTUREE:'🟢', CREATION:'➕', MODIFICATION:'✏️' };
+  tbody.innerHTML = sorted.map(h => {
+    const eq = equipments.find(e=>e.id===h.equipment_id);
+    const usr = users.find(u=>u.id===h.user_id);
+    return `<tr>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${h.date}</td>
+      <td>${icons[h.action]||'📋'} <strong>${h.action}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${eq?.code||'—'}</td>
+      <td>${usr?.full_name||'—'}</td>
+      <td style="color:var(--muted);font-size:12px">${h.details}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════
+function roleBadge(r) {
+  const map = { ADMIN:'admin', GESTIONNAIRE:'gestionnaire', TECHNICIEN:'technicien', BENEFICIAIRE:'returned' };
+  return `<span class="badge badge-${map[r]||'returned'}">${r}</span>`;
+}
+
+function renderUsers() {
+  const tbody = document.getElementById('userTbody');
+  tbody.innerHTML = users.map(u => `<tr>
+    <td>${u.full_name}</td>
+    <td style="font-family:'DM Mono',monospace;font-size:12px">${u.email}</td>
+    <td>${roleBadge(u.role)}</td>
+    <td>${u.status?'<span class="badge badge-active">Actif</span>':'<span class="badge badge-returned">Inactif</span>'}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" onclick="toggleUser(${u.id})">${u.status?'⏸ Désactiver':'▶ Activer'}</button>
+      <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="deleteUser(${u.id})">🗑</button>
+    </td>
+  </tr>`).join('');
+}
+
+function toggleUser(id) {
+  const u = users.find(x=>x.id===id);
+  if (u) { u.status=u.status?0:1; renderUsers(); toast(`Utilisateur ${u.status?'activé':'désactivé'}`,'info'); }
+}
+function deleteUser(id) {
+  if (id===1) { toast('Impossible de supprimer l\'admin','error'); return; }
+  if (!confirm('Supprimer cet utilisateur ?')) return;
+  const idx = users.findIndex(x=>x.id===id);
+  if (idx>-1) { users.splice(idx,1); renderUsers(); toast('Utilisateur supprimé','info'); }
+}
+
+function saveUser() {
+  const name = document.getElementById('uName').value.trim();
+  const email = document.getElementById('uEmail').value.trim();
+  const pass = document.getElementById('uPass').value;
+  const role = document.getElementById('uRole').value;
+  if (!name||!email||!pass) { toast('Champs obligatoires manquants','error'); return; }
+  if (users.find(u=>u.email===email)) { toast('Email déjà utilisé','error'); return; }
+  users.push({ id:nextId.user++, full_name:name, email, password:pass, role, status:parseInt(document.getElementById('uStatus').value) });
+  closeModal('modalUser'); renderUsers(); toast('Utilisateur créé ✅','success');
+}
+
+// ══════════════════════════════════════════════
+// CATEGORIES
+// ══════════════════════════════════════════════
+function renderCategories() {
+  document.getElementById('catTbody').innerHTML = categories.map(c => `<tr>
+    <td><strong>${c.name}</strong></td>
+    <td>${c.description}</td>
+    <td><span class="badge badge-assigned">${equipments.filter(e=>e.category===c.name).length}</span></td>
+    <td><button class="btn btn-ghost btn-sm">✏️</button></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════
+// SEARCH
+// ══════════════════════════════════════════════
+function globalSearchFn(q) {
+  if (!q) { renderEquipments(); return; }
+  q = q.toLowerCase();
+  const res = equipments.filter(e =>
+    e.code.toLowerCase().includes(q) ||
+    e.brand.toLowerCase().includes(q) ||
+    e.model.toLowerCase().includes(q) ||
+    (e.serial||'').toLowerCase().includes(q) ||
+    e.category.toLowerCase().includes(q)
+  );
+  if (currentPage !== 'equipments') showPage('equipments', document.querySelector('.nav-item:nth-child(3)'));
+  renderEquipments(res);
+}
+
+// ══════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); editingId=null; }
+
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target===m) m.classList.remove('open'); });
+});
+
+function handleTopAdd() {
+  const map = {
+    equipments: () => { editingId=null; document.getElementById('equipModalTitle').textContent='Ajouter un équipement'; ['eCode','eSerial','eBrand','eModel','eSupplier','ePurchase','eWarranty','eComment'].forEach(id=>document.getElementById(id).value=''); document.getElementById('eCat').value=''; document.getElementById('eCondition').value='Bon'; document.getElementById('eStatus').value='AVAILABLE'; openModal('modalEquip'); },
+    assignments: () => {
+      // populate selects
+      const ae = document.getElementById('aEquip');
+      ae.innerHTML = equipments.filter(e=>e.status==='AVAILABLE').map(e=>`<option value="${e.id}">${e.code} — ${e.brand} ${e.model}</option>`).join('');
+      const au = document.getElementById('aUser');
+      au.innerHTML = users.filter(u=>u.status).map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
+      ['aService','aRoom','aReturn','aObs'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('aDate').value = new Date().toISOString().split('T')[0];
+      openModal('modalAssign');
+    },
+    maintenance: () => {
+      const me = document.getElementById('mEquip');
+      me.innerHTML = equipments.map(e=>`<option value="${e.id}">${e.code} — ${e.brand} ${e.model}</option>`).join('');
+      const mt = document.getElementById('mTech');
+      mt.innerHTML = `<option value="">— Aucun —</option>` + users.filter(u=>u.role==='TECHNICIEN'&&u.status).map(u=>`<option value="${u.id}">${u.full_name}</option>`).join('');
+      ['mProblem','mSolution','mEnd'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('mStart').value = new Date().toISOString().split('T')[0];
+      document.getElementById('mStatus').value = 'OPEN';
+      openModal('modalMaint');
+    },
+    users: () => { ['uName','uEmail','uPass'].forEach(id=>document.getElementById(id).value=''); document.getElementById('uRole').value='BENEFICIAIRE'; openModal('modalUser'); },
+    dashboard: () => toast('Utilisez les sections pour ajouter du contenu','info'),
+    history: () => toast('L\'historique est automatique','info'),
+    categories: () => toast('Ajout de catégories: bientôt disponible','info'),
+    stats: () => toast('Les statistiques se mettent à jour automatiquement','info'),
+  };
+  (map[currentPage] || (() => {}))();
+}
+
+// ══════════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════════
+function toast(msg, type='info') {
+  const icons = { success:'✅', error:'❌', info:'ℹ️' };
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+  document.getElementById('toastContainer').appendChild(t);
+  setTimeout(()=>{ t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 3000);
+}
+
+// Init: show login
+document.getElementById('loginEmail').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('loginPass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+</script>
+</body>
+</html>
